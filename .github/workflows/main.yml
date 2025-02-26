@@ -1,0 +1,47 @@
+﻿name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Runs when pushing to the main branch
+  workflow_dispatch:  # Allows manual execution from GitHub UI
+
+permissions:
+  contents: write  # ✅ Give write access to push changes
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0'  # Adjust if needed
+
+      - name: Restore dependencies
+        run: |
+          cd Github-Pages-POC
+          dotnet restore
+
+      - name: Build the API
+        run: |
+          cd Github-Pages-POC
+          dotnet build --configuration Release
+
+      - name: Run API and Generate Swagger
+        run: |
+          cd Github-Pages-POC
+          dotnet run --no-build --configuration Release & 
+          sleep 10  # Wait for API to start
+          curl http://localhost:5036/swagger/v1/swagger.json -o swagger.json
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}  # ✅ Use GITHUB_TOKEN
+          publish_dir: ./Github-Pages-POC
+          branch: gh-pages
