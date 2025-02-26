@@ -1,13 +1,12 @@
-﻿name: Deploy to GitHub Pages
+﻿name: Deploy Swagger to GitHub Pages
 
 on:
   push:
     branches:
-      - main  # Runs when pushing to the main branch
-  workflow_dispatch:  # Allows manual execution from GitHub UI
+      - main
 
 permissions:
-  contents: write  # ✅ Give write access to push changes
+  contents: write  # Allows pushing to gh-pages
 
 jobs:
   deploy:
@@ -20,28 +19,28 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0'  # Adjust if needed
+          dotnet-version: '6.0'
 
       - name: Restore dependencies
         run: |
           cd Github-Pages-POC
           dotnet restore
 
-      - name: Build the API
+      - name: Build API
         run: |
           cd Github-Pages-POC
           dotnet build --configuration Release
 
-      - name: Run API and Generate Swagger
+      - name: Run API and Generate Swagger JSON
         run: |
           cd Github-Pages-POC
-          dotnet run --no-build --configuration Release & 
-          sleep 10  # Wait for API to start
-          curl http://localhost:5036/swagger/v1/swagger.json -o swagger.json
+          dotnet run --no-build --configuration Release &
+          sleep 10  # Wait for API startup
+          curl http://localhost:5036/swagger/v1/swagger.json -o Github-Pages-POC/swagger-ui/swagger.json
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}  # ✅ Use GITHUB_TOKEN
-          publish_dir: ./Github-Pages-POC
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./Github-Pages-POC/swagger-ui
           branch: gh-pages
